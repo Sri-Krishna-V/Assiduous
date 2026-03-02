@@ -2,33 +2,35 @@ name: Deploy to DigitalOcean Kubernetes
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+      - dev
+      - feat/auto
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Checkout code
-      uses: actions/checkout@v4
+      - name: Login to DigitalOcean Registry
+        run: echo "${{ secrets.DO_TOKEN }}" | docker login registry.digitalocean.com -u ${{ secrets.DO_TOKEN }} --password-stdin
 
-    - name: Login to DigitalOcean Registry
-      run: echo "${{ secrets.DO_TOKEN }}" | docker login registry.digitalocean.com -u ${{ secrets.DO_TOKEN }} --password-stdin
+      - name: Build Docker image
+        run: docker build -t registry.digitalocean.com/cicd-registry/assiduous:latest .
 
-    - name: Build Docker image
-      run: docker build -t registry.digitalocean.com/cicd-registry/assiduous:latest .
+      - name: Push Docker image
+        run: docker push registry.digitalocean.com/cicd-registry/assiduous:latest
 
-    - name: Push Docker image
-      run: docker push registry.digitalocean.com/cicd-registry/assiduous:latest
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
 
-    - name: Install doctl
-      uses: digitalocean/action-doctl@v2
-      with:
-        token: ${{ secrets.DO_TOKEN }}
+      - name: Configure Kubernetes
+        run: doctl kubernetes cluster kubeconfig save cicd-cluster
 
-    - name: Configure Kubernetes
-      run: doctl kubernetes cluster kubeconfig save cicd-cluster
-
-    - name: Restart deployment
-      run: kubectl rollout restart deployment assiduous-app
+      - name: Restart deployment
+        run: kubectl rollout restart deployment assiduous-app
