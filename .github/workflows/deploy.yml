@@ -32,12 +32,18 @@ jobs:
       - name: Configure Kubernetes
         run: doctl kubernetes cluster kubeconfig save cicd-cluster
 
-      - name: Create or update Kubernetes secret
+      - name: Sync registry pull secret
+        run: doctl registry kubernetes-manifest | kubectl apply -f -
+
+      - name: Create or update app secrets
         run: |
           kubectl create secret generic assiduous-secrets \
             --from-literal=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
             --from-literal=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
             --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Remove duplicate service if exists
+        run: kubectl delete service assiduous-service --ignore-not-found=true
 
       - name: Apply Kubernetes manifests
         run: |
