@@ -1,8 +1,15 @@
+require('dotenv').config();
 const http = require('http');
 const fetch = require('node-fetch');
 
-const SUPABASE_URL = "https://ydstcrzeiaagfstjnuqj.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlkc3RjcnplaWFhZ2ZzdGpudXFqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIyMDc2NDMsImV4cCI6MjA4Nzc4MzY0M30.Yee_OgnqfF42CGW4mRRuX2dWFumzhClKY2qs7fXBWb4";
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const PORT = process.env.PORT || 3000;
+
+if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+  console.error('Error: SUPABASE_URL and SUPABASE_ANON_KEY environment variables are required');
+  process.exit(1);
+}
 
 const server = http.createServer(async (req, res) => {
 
@@ -23,6 +30,7 @@ const server = http.createServer(async (req, res) => {
 
   } catch (error) {
 
+    console.error('Fetch error:', error);
     res.writeHead(500, { "Content-Type": "text/plain" });
     res.end("FETCH ERROR:\n" + error.message);
 
@@ -30,4 +38,6 @@ const server = http.createServer(async (req, res) => {
 
 });
 
-server.listen(3000);
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
