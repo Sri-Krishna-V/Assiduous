@@ -39,7 +39,7 @@ const server = http.createServer(async (req, res) => {
     const text = await response.text();
 
     res.writeHead(response.status, { 'Content-Type': 'text/plain' });
-    res.end('SUPABASE RESPONSE:\n' + text);
+    res.end('Version 2 deployed successfully\n\nSUPABASE RESPONSE:\n' + text);
 
   } catch (error) {
 
