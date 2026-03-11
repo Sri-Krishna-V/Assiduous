@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assiduous</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;1,14..32,300&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ── Reset & Tokens ───────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:         #0c0b0a;
+      --surface:    #131210;
+      --surface-2:  #1a1815;
+      --border:     #252220;
+      --border-2:   #2e2b27;
+      --text:       #ede8df;
+      --text-2:     #7a7168;
+      --text-3:     #443e37;
+      --accent:     #c8991f;
+      --accent-dim: rgba(200, 153, 31, 0.10);
+      --accent-dim2:rgba(200, 153, 31, 0.18);
+      --green:      #4caf7d;
+      --green-dim:  rgba(76, 175, 125, 0.10);
+      --red:        #cf6679;
+      --red-dim:    rgba(207, 102, 121, 0.10);
+
+      --font:       'Inter', system-ui, sans-serif;
+      --mono:       'JetBrains Mono', 'Fira Code', monospace;
+
+      --radius:     3px;
+      --max-w:      960px;
+    }
+
+    html { font-size: 14px; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-weight: 400;
+      line-height: 1.5;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Layout ───────────────────────────────────────────── */
+    .wrap {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Header ───────────────────────────────────────────── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 0 24px;
+    }
+
+    .header-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+
+    .logo-name {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text);
+    }
+
+    .logo-sub {
+      font-size: 11px;
+      color: var(--text-3);
+      letter-spacing: 0.04em;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    /* ── Active Session Badge ─────────────────────────────── */
+    #active-badge {
+      display: none;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--green);
+      font-family: var(--mono);
+    }
+
+    #active-badge.visible { display: flex; }
+
+    .pulse {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    /* ── Stat Row ─────────────────────────────────────────── */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .stat-cell {
+      padding: 24px 0;
+      border-right: 1px solid var(--border);
+    }
+
+    .stat-cell:first-child { padding-left: 0; }
+    .stat-cell:last-child  { border-right: none; }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 8px;
+    }
+
+    .stat-value {
+      font-family: var(--mono);
+      font-size: 28px;
+      font-weight: 500;
+      color: var(--text);
+      line-height: 1;
+      letter-spacing: -0.02em;
+    }
+
+    .stat-value span {
+      font-size: 13px;
+      font-weight: 400;
+      color: var(--text-2);
+      letter-spacing: 0;
+      margin-left: 4px;
+    }
+
+    .stat-streak {
+      color: var(--accent);
+    }
+
+    /* ── Section ──────────────────────────────────────────── */
+    .section {
+      padding: 28px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-title {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 20px;
+    }
+
+    /* ── Start Session ────────────────────────────────────── */
+    .session-controls {
+      display: flex;
+      gap: 10px;
+      align-items: stretch;
+    }
+
+    select, input[type="text"] {
+      background: var(--surface);
+      border: 1px solid var(--border-2);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 13px;
+      padding: 0 12px;
+      height: 38px;
+      border-radius: var(--radius);
+      outline: none;
+      transition: border-color 0.15s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%23443e37' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+      cursor: pointer;
+      min-width: 200px;
+    }
+
+    select:focus, input[type="text"]:focus {
+      border-color: var(--border-2);
+      box-shadow: 0 0 0 2px var(--accent-dim);
+    }
+
+    select option { background: var(--surface-2); }
+
+    input[type="text"] {
+      flex: 1;
+      min-width: 0;
+    }
+
+    input[type="text"]::placeholder { color: var(--text-3); }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      height: 38px;
+      padding: 0 18px;
+      border: 1px solid transparent;
+      border-radius: var(--radius);
+      font-family: var(--font);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.15s, background 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .btn-start {
+      background: var(--accent);
+      color: #0c0b0a;
+      border-color: var(--accent);
+    }
+
+    .btn-start:hover:not(:disabled) { opacity: 0.88; }
+
+    .btn-stop {
+      background: transparent;
+      color: var(--red);
+      border-color: var(--red);
+    }
+
+    .btn-stop:hover:not(:disabled) { background: var(--red-dim); }
+
+    /* ── Active Session Panel ─────────────────────────────── */
+    #active-panel {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--green-dim);
+      border: 1px solid rgba(76, 175, 125, 0.2);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      margin-top: 12px;
+    }
+
+    #active-panel.visible { display: flex; }
+
+    .active-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .active-icon {
+      font-size: 20px;
+      line-height: 1;
+    }
+
+    .active-subject {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+    }
+
+    .active-since {
+      font-size: 11px;
+      color: var(--text-2);
+      margin-top: 1px;
+    }
+
+    #active-timer {
+      font-family: var(--mono);
+      font-size: 20px;
+      font-weight: 500;
+      color: var(--green);
+      letter-spacing: 0.02em;
+    }
+
+    /* ── Two Column ───────────────────────────────────────── */
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .col {
+      padding: 28px 0;
+    }
+
+    .col:first-child {
+      padding-right: 40px;
+      border-right: 1px solid var(--border);
+    }
+
+    .col:last-child {
+      padding-left: 40px;
+    }
+
+    /* ── Subject Bars ─────────────────────────────────────── */
+    .subject-list { display: flex; flex-direction: column; gap: 14px; }
+
+    .subject-row {
+      display: grid;
+      grid-template-columns: 22px 1fr auto;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .subject-icon { font-size: 14px; line-height: 1; }
+
+    .subject-bar-wrap { display: flex; flex-direction: column; gap: 5px; }
+
+    .subject-bar-name {
+      font-size: 12px;
+      color: var(--text-2);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .subject-bar-track {
+      height: 3px;
+      background: var(--surface-2);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .subject-bar-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .subject-time {
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--text-2);
+      white-space: nowrap;
+    }
+
+    /* ── Daily Chart ──────────────────────────────────────── */
+    .daily-chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      height: 100px;
+    }
+
+    .day-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      height: 100%;
+      justify-content: flex-end;
+    }
+
+    .day-bar-wrap {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .day-bar {
+      width: 100%;
+      background: var(--surface-2);
+      border-radius: 2px 2px 0 0;
+      transition: height 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+      min-height: 3px;
+    }
+
+    .day-bar.has-data { background: var(--accent); opacity: 0.7; }
+    .day-bar.today    { background: var(--accent); opacity: 1; }
+
+    .day-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-3);
+      letter-spacing: 0.04em;
+    }
+
+    .day-label.today { color: var(--accent); }
+
+    /* ── Sessions Table ───────────────────────────────────── */
+    .sessions-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .sessions-table thead tr {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .sessions-table th {
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      padding: 0 0 10px;
+      text-align: left;
+    }
+
+    .sessions-table th:last-child { text-align: right; }
+
+    .sessions-table tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    .sessions-table tbody tr:hover { background: var(--surface); }
+    .sessions-table tbody tr:last-child { border-bottom: none; }
+
+    .sessions-table td {
+      padding: 12px 0;
+      font-size: 13px;
+      vertical-align: middle;
+    }
+
+    .sessions-table td:last-child { text-align: right; }
+
+    .td-subject {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .td-icon { font-size: 15px; line-height: 1; }
+
+    .td-name { font-weight: 500; }
+
+    .td-notes {
+      font-size: 11px;
+      color: var(--text-3);
+      margin-top: 2px;
+      font-style: italic;
+    }
+
+    .td-duration {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-2);
+    }
+
+    .td-when {
+      font-size: 12px;
+      color: var(--text-3);
+      font-family: var(--mono);
+    }
+
+    /* ── Dot indicator ────────────────────────────────────── */
+    .dot {
+      display: inline-block;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      margin-right: 6px;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    /* ── Empty / Loading states ───────────────────────────── */
+    .empty {
+      padding: 32px 0;
+      text-align: center;
+      color: var(--text-3);
+      font-size: 13px;
+    }
+
+    .skeleton {
+      background: var(--surface-2);
+      border-radius: 2px;
+      animation: shimmer 1.4s infinite;
+    }
+
+    @keyframes shimmer {
+      0%, 100% { opacity: 0.5; }
+      50%       { opacity: 1; }
+    }
+
+    /* ── Toast ────────────────────────────────────────────── */
+    #toast {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: var(--surface-2);
+      border: 1px solid var(--border-2);
+      color: var(--text);
+      font-size: 13px;
+      padding: 10px 18px;
+      border-radius: var(--radius);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, transform 0.2s;
+      white-space: nowrap;
+      z-index: 100;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    footer {
+      padding: 28px 24px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-left {
+      font-size: 11px;
+      color: var(--text-3);
+      letter-spacing: 0.04em;
+    }
+
+    .footer-arch {
+      display: flex;
+      gap: 16px;
+    }
+
+    .arch-tag {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text-3);
+      border: 1px solid var(--border-2);
+      padding: 3px 7px;
+      border-radius: 2px;
+    }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .stat-row { grid-template-columns: repeat(2, 1fr); }
+      .two-col  { grid-template-columns: 1fr; }
+      .col:first-child { border-right: none; border-bottom: 1px solid var(--border); padding-right: 0; }
+      .col:last-child  { padding-left: 0; }
+      .session-controls { flex-wrap: wrap; }
+      select { min-width: unset; width: 100%; }
+      .footer-arch { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-name">Assiduous</span>
+        <span class="logo-sub">study tracker</span>
+      </div>
+      <div class="header-right">
+        <div id="active-badge">
+          <span class="pulse"></span>
+          <span id="badge-text">—</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+
+    <!-- Stat Row -->
+    <div class="stat-row" id="stat-row">
+      <div class="stat-cell">
+        <div class="stat-label">Streak</div>
+        <div class="stat-value stat-streak" id="stat-streak">—<span>days</span></div>
+      </div>
+      <div class="stat-cell" style="padding-left:28px">
+        <div class="stat-label">Today</div>
+        <div class="stat-value" id="stat-today">—<span>hrs</span></div>
+      </div>
+      <div class="stat-cell" style="padding-left:28px">
+        <div class="stat-label">This week</div>
+        <div class="stat-value" id="stat-week">—<span>hrs</span></div>
+      </div>
+      <div class="stat-cell" style="padding-left:28px">
+        <div class="stat-label">All time</div>
+        <div class="stat-value" id="stat-total">—<span>hrs</span></div>
+      </div>
+    </div>
+
+    <!-- Session Control -->
+    <div class="section">
+      <div class="section-title">Session</div>
+      <div class="session-controls">
+        <select id="subject-select">
+          <option value="">Loading subjects…</option>
+        </select>
+        <input type="text" id="notes-input" placeholder="Notes (optional)">
+        <button class="btn btn-start" id="btn-start" onclick="startSession()">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M2 1.5l6 3.5-6 3.5V1.5z"/></svg>
+          Start
+        </button>
+        <button class="btn btn-stop" id="btn-stop" onclick="stopSession()" style="display:none">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><rect x="1.5" y="1.5" width="7" height="7" rx="1"/></svg>
+          Stop
+        </button>
+      </div>
+
+      <!-- Active session info -->
+      <div id="active-panel">
+        <div class="active-left">
+          <span class="active-icon" id="active-icon">📘</span>
+          <div>
+            <div class="active-subject" id="active-name">—</div>
+            <div class="active-since" id="active-since">—</div>
+          </div>
+        </div>
+        <div id="active-timer">0:00:00</div>
+      </div>
+    </div>
+
+    <!-- Subject Breakdown + Daily Chart -->
+    <div class="two-col">
+      <div class="col">
+        <div class="section-title">By subject</div>
+        <div class="subject-list" id="subject-list">
+          <div class="empty">No sessions yet.</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="section-title">Last 7 days</div>
+        <div class="daily-chart" id="daily-chart">
+          <!-- rendered by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Recent Sessions -->
+    <div class="section" style="border-bottom:none; padding-bottom:0">
+      <div class="section-title">Recent sessions</div>
+      <table class="sessions-table">
+        <thead>
+          <tr>
+            <th>Subject</th>
+            <th style="width:120px">Duration</th>
+            <th style="width:140px; text-align:right">When</th>
+          </tr>
+        </thead>
+        <tbody id="sessions-body">
+          <tr><td colspan="3" class="empty">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+      <span class="footer-left">Node.js · Supabase Edge Functions · Deno · Kubernetes</span>
+      <div class="footer-arch">
+        <span class="arch-tag">API Gateway</span>
+        <span class="arch-tag">Serverless</span>
+        <span class="arch-tag">BaaS</span>
+        <span class="arch-tag">Docker</span>
+      </div>
+    </div>
+  </footer>
+
+  <div id="toast"></div>
+
+  <script>
+    // ── State ─────────────────────────────────────────────────
+    let activeSession = null;
+    let timerInterval = null;
+    let subjects = [];
+
+    // ── Helpers ───────────────────────────────────────────────
+    function toast(msg, duration = 2800) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.classList.add('show');
+      setTimeout(() => el.classList.remove('show'), duration);
+    }
+
+    function fmtHrs(minutes) {
+      if (!minutes) return '0';
+      const h = minutes / 60;
+      return h < 10 ? (Math.round(h * 10) / 10).toString() : Math.round(h).toString();
+    }
+
+    function fmtDuration(minutes) {
+      if (!minutes && minutes !== 0) return '—';
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      if (h === 0) return `${m}m`;
+      return m === 0 ? `${h}h` : `${h}h ${m}m`;
+    }
+
+    function fmtElapsed(startedAt) {
+      const diff = Math.floor((Date.now() - new Date(startedAt)) / 1000);
+      const h = Math.floor(diff / 3600);
+      const m = Math.floor((diff % 3600) / 60);
+      const s = diff % 60;
+      return `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    }
+
+    function relativeTime(iso) {
+      const diff = Math.floor((Date.now() - new Date(iso)) / 1000);
+      if (diff < 60)     return 'just now';
+      if (diff < 3600)   return `${Math.floor(diff/60)}m ago`;
+      if (diff < 86400)  return `${Math.floor(diff/3600)}h ago`;
+      if (diff < 172800) return 'yesterday';
+      return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }
+
+    function subjectColor(subjectId) {
+      const s = subjects.find(s => s.id === subjectId);
+      return s?.color || '#c8991f';
+    }
+
+    function subjectIcon(subjectId) {
+      const s = subjects.find(s => s.id === subjectId);
+      return s?.icon || '📘';
+    }
+
+    // ── API ───────────────────────────────────────────────────
+    async function api(method, path, body) {
+      const opts = {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+      };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(path, opts);
+      return res.json();
+    }
+
+    // ── Load Subjects ─────────────────────────────────────────
+    async function loadSubjects() {
+      try {
+        const data = await api('GET', '/api/subjects');
+        subjects = data.subjects || [];
+        const sel = document.getElementById('subject-select');
+        sel.innerHTML = subjects.length
+          ? subjects.map(s => `<option value="${s.id}">${s.icon} ${s.name}</option>`).join('')
+          : '<option value="">No subjects found</option>';
+      } catch {
+        document.getElementById('subject-select').innerHTML = '<option value="">Failed to load</option>';
+      }
+    }
+
+    // ── Load Stats ────────────────────────────────────────────
+    async function loadStats() {
+      try {
+        const data = await api('GET', '/api/stats');
+        const ov = data.overview;
+
+        document.getElementById('stat-streak').innerHTML =
+          `${ov.current_streak || 0}<span>day${ov.current_streak !== 1 ? 's' : ''}</span>`;
+        document.getElementById('stat-today').innerHTML =
+          `${fmtHrs(ov.today_minutes)}<span>hrs</span>`;
+        document.getElementById('stat-week').innerHTML =
+          `${fmtHrs(ov.week_minutes)}<span>hrs</span>`;
+        document.getElementById('stat-total').innerHTML =
+          `${fmtHrs(ov.total_minutes)}<span>hrs</span>`;
+
+        renderSubjectBars(data.by_subject || []);
+        renderDailyChart(data.daily_breakdown || []);
+      } catch (e) {
+        console.error('stats error', e);
+      }
+    }
+
+    // ── Render Subject Bars ───────────────────────────────────
+    function renderSubjectBars(bySubject) {
+      const el = document.getElementById('subject-list');
+      const filtered = bySubject.filter(s => s.total_minutes > 0);
+      if (!filtered.length) {
+        el.innerHTML = '<div class="empty">No sessions yet.</div>';
+        return;
+      }
+      const max = Math.max(...filtered.map(s => s.total_minutes));
+      el.innerHTML = filtered.slice(0, 6).map(s => {
+        const pct = max > 0 ? Math.round((s.total_minutes / max) * 100) : 0;
+        return `
+          <div class="subject-row">
+            <span class="subject-icon">${s.icon}</span>
+            <div class="subject-bar-wrap">
+              <div class="subject-bar-name">${s.name}</div>
+              <div class="subject-bar-track">
+                <div class="subject-bar-fill" style="width:${pct}%;background:${s.color}"></div>
+              </div>
+            </div>
+            <span class="subject-time">${fmtHrs(s.total_minutes)}h</span>
+          </div>`;
+      }).join('');
+      // Animate bars in next frame
+      requestAnimationFrame(() => {
+        el.querySelectorAll('.subject-bar-fill').forEach(b => {
+          const w = b.style.width;
+          b.style.width = '0';
+          requestAnimationFrame(() => { b.style.width = w; });
+        });
+      });
+    }
+
+    // ── Render Daily Chart ────────────────────────────────────
+    function renderDailyChart(breakdown) {
+      const el = document.getElementById('daily-chart');
+      if (!breakdown.length) { el.innerHTML = ''; return; }
+      const maxMin = Math.max(...breakdown.map(d => d.minutes), 1);
+      const todayStr = new Date().toISOString().substring(0, 10);
+
+      el.innerHTML = breakdown.map(d => {
+        const pct = Math.round((d.minutes / maxMin) * 88) + 4; // 4% min height
+        const isToday = d.date === todayStr;
+        const cls = isToday ? 'today' : (d.minutes > 0 ? 'has-data' : '');
+        return `
+          <div class="day-col">
+            <div class="day-bar-wrap">
+              <div class="day-bar ${cls}" style="height:${pct}%"
+                   title="${d.day}: ${fmtDuration(d.minutes)}"></div>
+            </div>
+            <span class="day-label ${isToday ? 'today' : ''}">${d.day}</span>
+          </div>`;
+      }).join('');
+    }
+
+    // ── Load Sessions ─────────────────────────────────────────
+    async function loadSessions() {
+      try {
+        const data = await api('GET', '/api/sessions?limit=12');
+        const sessions = (data.sessions || []).filter(s => s.ended_at);
+        const tbody = document.getElementById('sessions-body');
+        if (!sessions.length) {
+          tbody.innerHTML = '<tr><td colspan="3" class="empty">No completed sessions yet.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = sessions.map(s => {
+          const subj = s.subjects || {};
+          return `
+            <tr>
+              <td>
+                <div class="td-subject">
+                  <span class="td-icon">${subj.icon || '📘'}</span>
+                  <div>
+                    <div class="td-name">${subj.name || '—'}</div>
+                    ${s.notes ? `<div class="td-notes">${s.notes}</div>` : ''}
+                  </div>
+                </div>
+              </td>
+              <td class="td-duration">${fmtDuration(s.duration_minutes)}</td>
+              <td class="td-when">${relativeTime(s.started_at)}</td>
+            </tr>`;
+        }).join('');
+      } catch (e) {
+        console.error('sessions error', e);
+      }
+    }
+
+    // ── Active Session ────────────────────────────────────────
+    async function loadActive() {
+      try {
+        const data = await api('GET', '/api/sessions/active');
+        setActiveSession(data.active_session);
+      } catch {}
+    }
+
+    function setActiveSession(session) {
+      activeSession = session;
+      const badge  = document.getElementById('active-badge');
+      const panel  = document.getElementById('active-panel');
+      const btnS   = document.getElementById('btn-start');
+      const btnSt  = document.getElementById('btn-stop');
+
+      if (session) {
+        const subj = session.subjects || {};
+        badge.classList.add('visible');
+        document.getElementById('badge-text').textContent = subj.name || '…';
+
+        panel.classList.add('visible');
+        document.getElementById('active-icon').textContent  = subj.icon || '📘';
+        document.getElementById('active-name').textContent  = subj.name || '—';
+        document.getElementById('active-since').textContent =
+          'Started ' + relativeTime(session.started_at);
+
+        btnS.style.display  = 'none';
+        btnSt.style.display = 'inline-flex';
+
+        clearInterval(timerInterval);
+        timerInterval = setInterval(() => {
+          document.getElementById('active-timer').textContent = fmtElapsed(session.started_at);
+        }, 1000);
+        document.getElementById('active-timer').textContent = fmtElapsed(session.started_at);
+      } else {
+        badge.classList.remove('visible');
+        panel.classList.remove('visible');
+        btnS.style.display  = 'inline-flex';
+        btnSt.style.display = 'none';
+        clearInterval(timerInterval);
+      }
+    }
+
+    // ── Start Session ─────────────────────────────────────────
+    async function startSession() {
+      const subjectId = document.getElementById('subject-select').value;
+      const notes     = document.getElementById('notes-input').value.trim();
+      if (!subjectId) { toast('Pick a subject first.'); return; }
+
+      const btn = document.getElementById('btn-start');
+      btn.disabled = true;
+      try {
+        const data = await api('POST', '/api/sessions/start', { subject_id: subjectId, notes: notes || undefined });
+        if (data.error) { toast(data.error); return; }
+        document.getElementById('notes-input').value = '';
+        setActiveSession(data.session);
+        await Promise.all([loadStats(), loadSessions()]);
+        toast('Session started.');
+      } catch { toast('Failed to start session.'); }
+      finally { btn.disabled = false; }
+    }
+
+    // ── Stop Session ──────────────────────────────────────────
+    async function stopSession() {
+      const btn = document.getElementById('btn-stop');
+      btn.disabled = true;
+      try {
+        const data = await api('POST', '/api/sessions/stop', {});
+        if (data.error) { toast(data.error); return; }
+        setActiveSession(null);
+        await Promise.all([loadStats(), loadSessions()]);
+        const dur = fmtDuration(data.session?.duration_minutes);
+        toast(`Session ended — ${dur} logged.`);
+      } catch { toast('Failed to stop session.'); }
+      finally { btn.disabled = false; }
+    }
+
+    // ── Init ──────────────────────────────────────────────────
+    async function init() {
+      await loadSubjects();
+      await Promise.all([loadStats(), loadSessions(), loadActive()]);
+      // Refresh stats every 60s
+      setInterval(() => { loadStats(); loadSessions(); }, 60_000);
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -19,10 +19,16 @@ jobs:
         run: echo "${{ secrets.DO_TOKEN }}" | docker login registry.digitalocean.com -u ${{ secrets.DO_TOKEN }} --password-stdin
 
       - name: Build Docker image
-        run: docker build -t registry.digitalocean.com/cicd-registry/assiduous:${{ github.sha }} .
+        run: |
+          docker build \
+            -t registry.digitalocean.com/cicd-registry/assiduous:${{ github.sha }} \
+            -t registry.digitalocean.com/cicd-registry/assiduous:latest \
+            .
 
       - name: Push Docker image
-        run: docker push registry.digitalocean.com/cicd-registry/assiduous:${{ github.sha }}
+        run: |
+          docker push registry.digitalocean.com/cicd-registry/assiduous:${{ github.sha }}
+          docker push registry.digitalocean.com/cicd-registry/assiduous:latest
 
       - name: Install doctl
         uses: digitalocean/action-doctl@v2
@@ -33,7 +39,7 @@ jobs:
         run: doctl kubernetes cluster kubeconfig save cicd-cluster
 
       - name: Sync registry pull secret
-        run: doctl registry kubernetes-manifest | kubectl apply -f -
+        run: doctl registry kubernetes-manifest --name registry-assiduous | kubectl apply -f -
 
       - name: Create or update app secrets
         run: |
@@ -42,13 +48,12 @@ jobs:
             --from-literal=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Remove duplicate service if exists
-        run: kubectl delete service assiduous-service --ignore-not-found=true
-
-      - name: Apply Kubernetes manifests
+      - name: Deploy to Kubernetes
         run: |
-          sed -i 's|assiduous:latest|assiduous:${{ github.sha }}|g' k8s/deployment.yaml
-          kubectl apply -f k8s/deployment.yaml
+          sed 's|IMAGE_TAG|${{ github.sha }}|g' k8s/deployment.yaml | kubectl apply -f -
 
       - name: Wait for rollout
-        run: kubectl rollout status deployment/assiduous-app --timeout=120s
+        run: kubectl rollout status deployment/assiduous-app --timeout=180s
+
+      - name: Show service endpoint
+        run: kubectl get service assiduous-service
