@@ -77,6 +77,12 @@ const routes = [
   // Stats
   { method: 'GET',    pattern: /^\/api\/stats\/leaderboard$/,fn: 'stats',    path: '/leaderboard' },
   { method: 'GET',    pattern: /^\/api\/stats(\/overview)?$/, fn: 'stats',   path: '/overview' },
+
+  // Goals
+  { method: 'GET',    pattern: /^\/api\/goals$/,             fn: 'goals',   path: '' },
+  { method: 'POST',   pattern: /^\/api\/goals$/,             fn: 'goals',   path: '' },
+  { method: 'PUT',    pattern: /^\/api\/goals\/(.+)$/,       fn: 'goals',   path: null },
+  { method: 'DELETE', pattern: /^\/api\/goals\/(.+)$/,       fn: 'goals',   path: null },
 ];
 
 function matchRoute(method, url) {
@@ -175,6 +181,10 @@ const server = http.createServer(async (req, res) => {
         'GET  /api/sessions':             'List sessions ?subject_id=&limit=',
         'GET  /api/stats':                'Dashboard stats',
         'GET  /api/stats/leaderboard':    'Subject leaderboard',
+        'GET  /api/goals':                'List weekly goals',
+        'POST /api/goals':                '{ subject_id, target_minutes_per_week }',
+        'PUT  /api/goals/:id':            '{ target_minutes_per_week }',
+        'DELETE /api/goals/:id':          'Delete a goal',
       },
     });
     return;
