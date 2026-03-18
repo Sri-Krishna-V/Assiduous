@@ -231,7 +231,7 @@ server.listen(PORT, () => {
   ║   Assiduous Study Tracker - API Gateway      ║
   ║   Port: ${String(PORT).padEnd(36)}║
   ║   Supabase: connected                        ║
-  ║   GET / for API docs                         ║
+  ║   GET / for API docs, do better              ║
   ╚══════════════════════════════════════════════╝
   `);
 });
